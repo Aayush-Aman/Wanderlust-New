@@ -103,7 +103,8 @@ app.put("/listings/:id",wrapAsync(async(req,res)=>{
 //implementing show route for every single hotel
 app.get("/listings/:id",wrapAsync(async(req,res)=>{
     let {id}=req.params;
-    const listingdata=await listing.findById(id);
+    const listingdata=await listing.findById(id).populate("reviews");
+
     res.render("./listings/showpersonal.ejs",{listingdata});
 }))
 //implementing the review route 
@@ -126,6 +127,13 @@ app.delete("/listings/:id",wrapAsync(async(req,res)=>{
     let deletedlisting=await listing.findByIdAndDelete(id);
     console.log(deletedlisting)
     res.redirect("/listings")
+}))
+//delete review route 
+app.delete("/listings/:id/reviews/:reviewId",wrapAsync(async(req,res)=>{
+    let {id,reviewId}=req.params;
+    await listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}});
+    await Review.findByIdAndDelete(reviewId);
+    res.redirect(`/listings/${id}`);
 }))
 
 // app.get("/*",(req,res,next)=>{
