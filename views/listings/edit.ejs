@@ -1,0 +1,23 @@
+<%-layout("/layouts/boilerplate") %>
+<body>
+    <h3>Edit the details</h3>
+    <form action="/listings/<%=Listing._id%>?_method=PUT" method="post">
+        Edit title 
+        <input type="text" value="<%=Listing.title%>" name="Listing[title]">
+        <br><br>
+        Edit description
+        <input type="text" value="<%=Listing.description%>" name="Listing[description]">
+        <br><br>
+        Edit price
+        <input type="text" value="<%=Listing.price%>" name="Listing[price]">
+        <br><br>
+        Edit city
+        <input type="text" value="<%=Listing.location%>" name="Listing[location]">
+        <br><br>
+        Edit country
+        <input type="text" value="<%=Listing.country%>" name="Listing[country]">
+        <br><br>
+        <button>Edit</button>
+    </form>
+</body>
+</html>

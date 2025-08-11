@@ -1,0 +1,42 @@
+<%-layout("/layouts/boilerplate") %>
+<body>
+    <h3>Showing specific hotel data </h3>
+    <!-- <div><img src="<%= listingdata.image.url %>" alt=""></div> -->
+    <ul>
+        <li><%=  listingdata.title %></li>
+        <li><%=  listingdata.description %></li>
+        <li>&#8377;<%=  listingdata.price.toLocaleString("en-IN")%></li>
+        <li><%=  listingdata.location %></li>
+        <li><%=  listingdata.country %></li>
+    </ul>
+    <span>
+    <form action="/listings/<%=listingdata._id %>/edit">
+        <button>Edit your details</button>
+    </form>
+    <form action="/listings/<%=listingdata._id %>?_method=DELETE" method="post">
+        <button>Deltete your listing</button>
+    </form>
+    </span>
+    <div class="col-8">
+        <hr><h4>
+            Leave a review 
+        </h4>
+        <form action="/listings/<%=listingdata._id%>/reviews" method="post" class="needs-validation" novalidate>
+            <div class="mb-3 mt-3">
+                <label for="rating" class="form-label">Rating</label>
+                <input type="range" min="1" max="5" name="review[rating]" id="rating" class="form-control">
+            </div>
+            <div class="mb-3 mt-3">
+                <label for="comment" class="form-label">Comment</label>
+                <textarea name="review[comment]" id="comment" rows="5" cols="50" required class="form-control"></textarea>
+                 <div class="invalid-feedback">
+                Please provide a review.
+    </div>
+                 <div class="valid-feedback">
+                Looks Good !!
+    </div>
+            </div>
+            <button>Submit</button>
+        </form>
+    </div>
+</body>
