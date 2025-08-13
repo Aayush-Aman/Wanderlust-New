@@ -9,6 +9,7 @@ const wrapAsync=require("./utils/wrapAync")
 const ExpressError=require("./utils/ExpressError")
 const Review=require("./models/review")
 const {reviewSchema}=require("./models/schema")
+const listingroutes=require("./routes/listing")
 
 app.use(methodOverride("_method"))
 app.use(express.urlencoded({extended:true}));
@@ -47,6 +48,7 @@ const validateReview=(req,res,next)=>{
 app.get('/',(req,res)=>{
     res.send("i am root ")
 })
+app.use("/listings",listingroutes)
 // app.get('/listings',async(req,res)=>{
 //     let sampletesting=new listing({
 //         title:"My villa",
@@ -69,44 +71,12 @@ app.get('/',(req,res)=>{
 })
 *///its a way ki jo v find se respnse aya hai usko console kar do 
 
-app.get("/listings",wrapAsync(async(req,res)=>{
-    const allListings=await listing.find({});
-    res.render("./listings/index.ejs",{allListings})
-}))
 
-//route for creating a new listing 
-app.get("/listings/new",(req,res)=>{
-    res.render("./listings/newlist.ejs");
-})
 
-app.post("/listings",wrapAsync(async(req,res,next)=>{
-    
-    const newlisting=new listing(req.body.listing);
-    await newlisting.save();
-    res.redirect("/listings");
-    
-}))
-//implementing the edit route 
-app.get("/listings/:id/edit",wrapAsync(async(req,res)=>{
-    let {id}=req.params;
-    // console.log(id)
-    const Listing=await listing.findById(id);
-    res.render("./listings/edit.ejs",{Listing});
-}))
-//implementing the update route 
-app.put("/listings/:id",wrapAsync(async(req,res)=>{
-    let {id}=req.params
-    await listing.findByIdAndUpdate(id,{...req.body.Listing});
-    res.redirect(`/listings/${id}`)
-}))
 
-//implementing show route for every single hotel
-app.get("/listings/:id",wrapAsync(async(req,res)=>{
-    let {id}=req.params;
-    const listingdata=await listing.findById(id).populate("reviews");
-
-    res.render("./listings/showpersonal.ejs",{listingdata});
-}))
+// app.get("/*",(req,res,next)=>{
+//     next(new ExpressError(404,"msg not found"))
+// })
 //implementing the review route 
 app.post("/listings/:id/reviews",validateReview,async(req,res)=>{
     let {id}=req.params;
@@ -121,13 +91,7 @@ app.post("/listings/:id/reviews",validateReview,async(req,res)=>{
 
 })
 
-//implementing the delete route 
-app.delete("/listings/:id",wrapAsync(async(req,res)=>{
-    let {id}=req.params;
-    let deletedlisting=await listing.findByIdAndDelete(id);
-    console.log(deletedlisting)
-    res.redirect("/listings")
-}))
+
 //delete review route 
 app.delete("/listings/:id/reviews/:reviewId",wrapAsync(async(req,res)=>{
     let {id,reviewId}=req.params;
@@ -135,10 +99,6 @@ app.delete("/listings/:id/reviews/:reviewId",wrapAsync(async(req,res)=>{
     await Review.findByIdAndDelete(reviewId);
     res.redirect(`/listings/${id}`);
 }))
-
-// app.get("/*",(req,res,next)=>{
-//     next(new ExpressError(404,"msg not found"))
-// })
 
 app.use((err,req,res,next)=>{
     let {statuscode=500,message="Something went wrong "} = err
