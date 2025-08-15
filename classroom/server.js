@@ -4,6 +4,14 @@ const session=require("express-session")
 const user=require("./routes/user.js")
 const post=require("./routes/post.js")
 const cookieParser=require("cookie-parser")
+const flash=require("connect-flash")
+const ejsMate=require("ejs-mate")
+app.set("view engine","ejs");
+const path=require("path")
+const { name } = require("ejs")
+app.set("views",path.join(__dirname,"views"))
+
+app.use(flash())
 // app.use(cookieParser())
 app.use(cookieParser("mysecretkey"))
 const sessionOptions={secret:"mySecretString",resave:false,saveUninitialized:true}
@@ -12,7 +20,20 @@ app.use(session(sessionOptions));
 
 app.get("/register",(req,res)=>{
     let {name="Anonymous"}=req.query;
-    res.send(name);
+    req.session.name=name;
+    console.log(req.session.name)
+    if(name==="Anonymous"){
+        req.flash("error","User not registered ");
+    }
+    else{
+    req.flash("success","user registered successfully")
+    }
+    res.redirect("/hello")
+})
+app.get("/hello",(req,res)=>{
+    res.locals.successmessage=req.flash("success")
+    res.locals.errormessage=req.flash("error")
+    res.render("page.ejs",{name:req.session.name})
 })
 
 
