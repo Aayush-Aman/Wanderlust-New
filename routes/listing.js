@@ -3,6 +3,7 @@ const router=express.Router();
 const wrapAsync=require("../utils/wrapAync")
 const listing=require("../models/Listing")
 const path=require("path")
+const {isLoggedin}=require("../middleware")
 
 // session middleware first
 
@@ -13,20 +14,23 @@ router.get("/",wrapAsync(async(req,res)=>{
 }))
 
 //route for creating a new listing 
-router.get("/new",(req,res)=>{
+router.get("/new",isLoggedin,(req,res)=>{
+    // console.log(req.user);
+    
     res.render("./listings/newlist.ejs");
 })
-
-router.post("/",wrapAsync(async(req,res,next)=>{
+//post route for saving the new user 
+router.post("/",isLoggedin,wrapAsync(async(req,res,next)=>{
     
     const newlisting=new listing(req.body.listing);
+    newlisting.owner=req.user._id;
     await newlisting.save();
     req.flash("success","new listing added successfully");
     res.redirect("/listings");
     
 }))
 //implementing the edit route 
-router.get("/:id/edit",wrapAsync(async(req,res)=>{
+router.get("/:id/edit",isLoggedin,wrapAsync(async(req,res)=>{
     let {id}=req.params;
     // console.log(id)
     const Listing=await listing.findById(id);
@@ -38,7 +42,7 @@ router.get("/:id/edit",wrapAsync(async(req,res)=>{
     res.render("./listings/edit.ejs",{Listing});
 }))
 //implementing the update route 
-router.put("/:id",wrapAsync(async(req,res)=>{
+router.put("/:id",isLoggedin,wrapAsync(async(req,res)=>{
     let {id}=req.params
     await listing.findByIdAndUpdate(id,{...req.body.Listing});
     req.flash("success","listing Edited successfully");
@@ -48,7 +52,8 @@ router.put("/:id",wrapAsync(async(req,res)=>{
 //implementing show route for every single hotel
 router.get("/:id",wrapAsync(async(req,res)=>{
     let {id}=req.params;
-    const listingdata=await listing.findById(id).populate("reviews");
+    const listingdata=await listing.findById(id).populate("reviews").populate("owner");
+    console.log(listingdata);
     if(!listingdata){
         req.flash("error","the listing you are looking does not exist.")
          res.redirect("/listings")
@@ -57,7 +62,7 @@ router.get("/:id",wrapAsync(async(req,res)=>{
     res.render("./listings/showpersonal.ejs",{listingdata});
 }))
 //implementing the delete route 
-router.delete("/:id",wrapAsync(async(req,res)=>{
+router.delete("/:id",isLoggedin,wrapAsync(async(req,res)=>{
     let {id}=req.params;
     let deletedlisting=await listing.findByIdAndDelete(id);
     console.log(deletedlisting)

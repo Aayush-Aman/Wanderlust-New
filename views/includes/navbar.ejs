@@ -10,6 +10,14 @@
         <a class="nav-link" href="/listings">listings</a>
         <a class="nav-link" href="/listings/new">Add New </a>
       </div>
+      <div class="navbar-nav m-auto ">
+        <%if(!currUser){%>
+        <a class="nav-link active" aria-current="page" href="/user/signup">Signup</a>
+        <a class="nav-link" href="/user/login">Login</a>
+        <%}else if(currUser){%>
+        <a class="nav-link" href="/user/logout">Logout </a>
+        <%}%>
+      </div>
     </div>
   </div>
 </nav>

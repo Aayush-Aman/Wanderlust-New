@@ -10,8 +10,14 @@ const ExpressError=require("./utils/ExpressError")
 const Review=require("./models/review")
 const {reviewSchema}=require("./models/schema")
 const listingroutes=require("./routes/listing")
+const userroutes=require("./routes/user")
 const session=require("express-session")
 const flash=require("connect-flash")
+const passport=require("passport")
+const localStrategy=require("passport-local")
+const User=require("./models/user.js")
+const{isLoggedin}=require("./middleware.js")
+
 
 app.use(methodOverride("_method"))
 app.use(express.urlencoded({extended:true}));
@@ -35,9 +41,19 @@ const sessionOptions={
 }
 app.use(session(sessionOptions));
 app.use(flash())
+
+//middlewares for the passport 
+app.use(passport.initialize())
+app.use(passport.session())
+passport.use(new localStrategy(User.authenticate()))
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+
 app.use((req,res,next)=>{
     res.locals.success=req.flash("success");
     res.locals.error=req.flash("error");
+    res.locals.currUser=req.user;
     next();
 })
 
@@ -65,14 +81,22 @@ const validateReview=(req,res,next)=>{
 
 }
 
-
+app.get("/demouser",async(req,res)=>{
+    let fakeUser=new User({
+        email:"aman@gmal.com",
+        username:"delta-student",
+    })
+    let registerduser=await User.register(fakeUser,"helloworld");
+    res.send(registerduser);
+})
 app.get('/',(req,res)=>{
     res.send("i am root ")
 })
 app.use("/listings",listingroutes)
+app.use("/user",userroutes)
 
 //implementing the review route 
-app.post("/listings/:id/reviews",validateReview,async(req,res)=>{
+app.post("/listings/:id/reviews",isLoggedin,validateReview,async(req,res)=>{
     let {id}=req.params;
     let list=await listing.findById(req.params.id);
     let newReview=new Review(req.body.review);
@@ -87,7 +111,7 @@ app.post("/listings/:id/reviews",validateReview,async(req,res)=>{
 
 
 //delete review route 
-app.delete("/listings/:id/reviews/:reviewId",wrapAsync(async(req,res)=>{
+app.delete("/listings/:id/reviews/:reviewId",isLoggedin,wrapAsync(async(req,res)=>{
     let {id,reviewId}=req.params;
     await listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}});
     await Review.findByIdAndDelete(reviewId);

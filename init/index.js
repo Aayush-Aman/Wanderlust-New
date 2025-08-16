@@ -1,6 +1,7 @@
 const mongoose=require("mongoose")
 const initdata=require("./data")
 const listing=require("../models/Listing")
+const User=require("../models/user")
 
 
 const MONGO_URL="mongodb://127.0.0.1:27017/wanderlustNew"
@@ -16,7 +17,11 @@ main().then(()=>{
 
 const initDB= async()=>{
     await listing.deleteMany({});
-    await listing.insertMany(initdata.data);
+     const modifiedData = initdata.data.map(obj => ({
+        ...obj,
+        owner: "689fc2e2b45fc32ccf149a6f"
+    }));
+    await listing.insertMany(modifiedData);
     console.log("data was initialised ")
 
 }
