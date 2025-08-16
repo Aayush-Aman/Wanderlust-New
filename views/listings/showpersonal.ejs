@@ -11,12 +11,14 @@
         <li><%=  listingdata.country %></li>
     </ul>
     <span>
+       <%if(currUser && currUser._id.equals(listingdata.owner._id)){%> 
     <form action="/listings/<%=listingdata._id %>/edit">
         <button>Edit your details</button>
     </form>
     <form action="/listings/<%=listingdata._id %>?_method=DELETE" method="post">
         <button>Deltete your listing</button>
     </form>
+    <%}%>
     </span>
     <div class="col-8">
         <hr><h4>
@@ -48,7 +50,7 @@
             <% for(let review of listingdata.reviews){ %>
                 <div class="col-5 mb-4">
                     <div class="card-body review-card">
-                        <h5>John Doe</h5>
+                        <h5><%=review.author.username%></h5>
                 <p><%= review.rating %></p>
                 <p><%= review.comment %></p>
                 <form action="/listings/<%=listingdata._id%>/reviews/<%=review._id%>?_method=DELETE" method="post">

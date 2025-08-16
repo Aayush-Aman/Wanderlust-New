@@ -1,22 +1,18 @@
 const express=require("express")
 const app=express()
 const mongoose=require("mongoose")
-const listing=require("./models/Listing")
 const path=require("path")
 const methodOverride=require("method-override")
 const ejsMate=require("ejs-mate")
 const wrapAsync=require("./utils/wrapAync")
-const ExpressError=require("./utils/ExpressError")
-const Review=require("./models/review")
-const {reviewSchema}=require("./models/schema")
 const listingroutes=require("./routes/listing")
 const userroutes=require("./routes/user")
+const reviewroutes=require("./routes/review")
 const session=require("express-session")
 const flash=require("connect-flash")
 const passport=require("passport")
 const localStrategy=require("passport-local")
 const User=require("./models/user.js")
-const{isLoggedin}=require("./middleware.js")
 
 
 app.use(methodOverride("_method"))
@@ -69,54 +65,9 @@ main().then(()=>{
     console.log(err)
 })
 
-const validateReview=(req,res,next)=>{
-    let {error}=reviewSchema.validate(req.body);
-    if(error){
-        let errMsg=error.details.map((er)=>er.message).join(",")
-        throw new ExpressError(400,errMsg);
-    }
-    else{
-        next();
-    }
-
-}
-
-app.get("/demouser",async(req,res)=>{
-    let fakeUser=new User({
-        email:"aman@gmal.com",
-        username:"delta-student",
-    })
-    let registerduser=await User.register(fakeUser,"helloworld");
-    res.send(registerduser);
-})
-app.get('/',(req,res)=>{
-    res.send("i am root ")
-})
 app.use("/listings",listingroutes)
 app.use("/user",userroutes)
-
-//implementing the review route 
-app.post("/listings/:id/reviews",isLoggedin,validateReview,async(req,res)=>{
-    let {id}=req.params;
-    let list=await listing.findById(req.params.id);
-    let newReview=new Review(req.body.review);
-    list.reviews.push(newReview);
-    await newReview.save();
-    await list.save();
-    console.log("save ho rha hai ");
-    res.redirect(`/listings/${id}`);
-
-
-})
-
-
-//delete review route 
-app.delete("/listings/:id/reviews/:reviewId",isLoggedin,wrapAsync(async(req,res)=>{
-    let {id,reviewId}=req.params;
-    await listing.findByIdAndUpdate(id,{$pull:{reviews:reviewId}});
-    await Review.findByIdAndDelete(reviewId);
-    res.redirect(`/listings/${id}`);
-}))
+app.use("/listings/:id/reviews",reviewroutes,)
 
 app.use((err,req,res,next)=>{
     let {statuscode=500,message="Something went wrong "} = err

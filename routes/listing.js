@@ -4,6 +4,7 @@ const wrapAsync=require("../utils/wrapAync")
 const listing=require("../models/Listing")
 const path=require("path")
 const {isLoggedin}=require("../middleware")
+const {isOwner}=require("../middleware")
 
 // session middleware first
 
@@ -19,7 +20,7 @@ router.get("/new",isLoggedin,(req,res)=>{
     
     res.render("./listings/newlist.ejs");
 })
-//post route for saving the new user 
+//post route for saving the new listing 
 router.post("/",isLoggedin,wrapAsync(async(req,res,next)=>{
     
     const newlisting=new listing(req.body.listing);
@@ -30,7 +31,7 @@ router.post("/",isLoggedin,wrapAsync(async(req,res,next)=>{
     
 }))
 //implementing the edit route 
-router.get("/:id/edit",isLoggedin,wrapAsync(async(req,res)=>{
+router.get("/:id/edit",isLoggedin,isOwner,wrapAsync(async(req,res)=>{
     let {id}=req.params;
     // console.log(id)
     const Listing=await listing.findById(id);
@@ -42,9 +43,9 @@ router.get("/:id/edit",isLoggedin,wrapAsync(async(req,res)=>{
     res.render("./listings/edit.ejs",{Listing});
 }))
 //implementing the update route 
-router.put("/:id",isLoggedin,wrapAsync(async(req,res)=>{
+router.put("/:id",isLoggedin,isOwner,wrapAsync(async(req,res)=>{
     let {id}=req.params
-    await listing.findByIdAndUpdate(id,{...req.body.Listing});
+     await listing.findByIdAndUpdate(id,{...req.body.Listing});
     req.flash("success","listing Edited successfully");
     res.redirect(`/listings/${id}`)
 }))
@@ -52,7 +53,7 @@ router.put("/:id",isLoggedin,wrapAsync(async(req,res)=>{
 //implementing show route for every single hotel
 router.get("/:id",wrapAsync(async(req,res)=>{
     let {id}=req.params;
-    const listingdata=await listing.findById(id).populate("reviews").populate("owner");
+    const listingdata=await listing.findById(id).populate({path:"reviews",populate:{path:"author"}}).populate("owner");
     console.log(listingdata);
     if(!listingdata){
         req.flash("error","the listing you are looking does not exist.")
@@ -62,7 +63,7 @@ router.get("/:id",wrapAsync(async(req,res)=>{
     res.render("./listings/showpersonal.ejs",{listingdata});
 }))
 //implementing the delete route 
-router.delete("/:id",isLoggedin,wrapAsync(async(req,res)=>{
+router.delete("/:id",isLoggedin,isOwner,wrapAsync(async(req,res)=>{
     let {id}=req.params;
     let deletedlisting=await listing.findByIdAndDelete(id);
     console.log(deletedlisting)
